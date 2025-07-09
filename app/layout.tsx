@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { NavigationMenuDemo } from "@/components/nav";
+import Link from "next/link";
+
+import Footer from "../components/Footer";
+import AboutSection from "../components/AboutSection";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,11 +31,38 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <NavigationMenuDemo />
+        {/* Navbar global */}
+        <header className="relative z-20 w-full bg-white/40 backdrop-blur-md">
+          <div className="grid grid-cols-3 items-center px-10 pt-6">
+            {/* Left navigation */}
+            <nav className="flex gap-12 justify-start">
+              <Link href="#" className="font-bold text-lg text-gray-800 hover:text-cyan-700">Company</Link>
+              <Link href="/offers" className="font-bold text-lg text-gray-800 hover:text-cyan-700">Search for a job</Link>
+              <Link href="/open-apply" className="font-bold text-lg text-gray-800 hover:text-cyan-700">Open apply</Link>
+            </nav>
+            {/* Center logo */}
+            <div className="flex flex-col items-center justify-center">
+              <span className="text-5xl font-bold text-gray-800">D</span>
+              <span className="font-bold tracking-widest text-2xl text-gray-800">DRÄXLMAIER</span>
+            </div>
+            {/* Right navigation */}
+            <div className="flex gap-12 justify-end items-center">
+              <Link href="#" className="font-bold text-lg text-gray-800 hover:text-cyan-700">Careers</Link>
+              <Link href="/chatbot" className="font-bold text-lg text-gray-800 hover:text-cyan-700">Chatbot</Link>
+              <button className="border rounded-full px-4 py-1 flex items-center gap-2 text-base text-gray-800 ml-2">
+                <span role="img" aria-label="globe">🌐</span> English
+              </button>
+            </div>
+          </div>
+          {/* Ligne fine sous la navbar */}
+          <div className="w-full border-b border-gray-400 mt-4"></div>
+        </header>
+      
         <main className="flex justify-center items-center sm:items-start  ">
-
           {children}
         </main>
+       
+        <Footer />
       </body>
     </html>
   );

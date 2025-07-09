@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react';
 import { jobOffersApi } from '@/services/api';
 import { useParams } from 'next/navigation';
 
-export default function OffrePage() {
-    const params = useParams();
+export default async function OffrePage() {
+    const params = await useParams();
     const id = params?.id;
     const [job, setJob] = useState<any>(null);
 

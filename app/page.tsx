@@ -1,16 +1,23 @@
-// app/layout.tsx
-import "./globals.css";
-import { ReactNode } from "react";
+import Image from "next/image";
+import AboutSection from "../components/AboutSection";
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function HomePage() {
   return (
-    <html lang="en">
-      <body>
-        
-        <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-          {children}
-        </div>
-      </body>
-    </html>
+    <div className="w-full min-h-[100vh] flex flex-col items-stretch">
+      {/* Vidéo en bloc sous la navbar */}
+      <div className="w-full flex justify-center items-center bg-black">
+        <video
+          className="w-full object-contain"
+          src="/video.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+        />
+      </div>
+
+      {/* Section WE CREATE CHARACTER */}
+      <AboutSection />
+    </div>
   );
 }

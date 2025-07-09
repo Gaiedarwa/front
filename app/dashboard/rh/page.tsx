@@ -13,7 +13,7 @@ import {
 import { Input } from "../../../components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from 'next/link';
-import { jobOffersApi, applicationsApi, JobOffer, Application } from '@/services/api';
+import { jobOffersApi, applicationsApi, JobOffer, Postulation } from '@/services/api';
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge"
 import { Edit2, Search, Trash2 } from "lucide-react"
@@ -22,7 +22,7 @@ export default function RHDashboard() {
 
     const [activeTab, setActiveTab] = useState('offers');
     const [jobOffers, setJobOffers] = useState<JobOffer[]>([]);
-    const [applications, setApplications] = useState<Application[]>([]);
+    const [applications, setApplications] = useState<Postulation[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -104,14 +104,14 @@ export default function RHDashboard() {
                                 Liste des offres d'emploi
                             </h2>
                             <Link
-                                href="/rh/offers/create"
+                                href="/offre/create"
                                 className="btn-primary"
                             >
                                 Créer une offre
                             </Link>
                         </div>
 
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
                             {jobOffers.map(offer => (
                                 <Card key={offer._id} className="shahd-card">
                                     <CardHeader>
@@ -119,23 +119,26 @@ export default function RHDashboard() {
                                             {offer.title}
                                         </CardTitle>
                                         <CardDescription>
-                                            <span className="font-medium">Niveau:</span> {offer.niveau}
+                                            <span className="font-medium">Niveau:</span> {offer.level}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
                                         <div className="flex flex-wrap gap-2 mb-2">
-                                            {offer.skills && offer.skills.map((skill: string) => (
+                                            {offer.skills && offer.skills.slice(0, 4).map((skill: string) => (
                                                 <Badge key={skill}>{skill}</Badge>
                                             ))}
+                                            {offer.skills && offer.skills.length > 4 && (
+                                                <Badge key="more">+{offer.skills.length - 4}</Badge>
+                                            )}
                                         </div>
                                         <p className="text-gray-600 mb-2">
-                                            <span className="font-medium">Type de contrat:</span> {offer.contractType}
+                                            <span className="font-medium">Type de contrat:</span> {offer.contract_type}
                                         </p>
                                         <p className="text-gray-600 mb-4">
                                             <span className="font-medium">Lieu:</span> {offer.location}
                                         </p>
                                     </CardContent>
-                                    <CardFooter className="flex justify-between items-center">
+                                    <CardFooter className="flex justify-between items-center mt-auto" style={{ marginTop: "auto" }}>
                                         <span className="text-sm text-gray-500"></span>
                                         <div className="space-x-2 flex">
                                             <Link
@@ -169,44 +172,7 @@ export default function RHDashboard() {
                     </div>
                 )}
 
-                {activeTab === 'applications' && (
-                    <div>
-                        <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                            Candidatures reçues
-                        </h2>
-
-                        <div className="space-y-4">
-                            {applications.map(app => (
-                                <div key={app._id} className="card">
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <h3 className="text-lg font-semibold text-[rgb(20,77,86)]">
-                                                {app.candidate.name}
-                                            </h3>
-                                            <p className="text-gray-600">
-                                                {app.job_offer.title}
-                                            </p>
-                                        </div>
-                                        <span className={`${app.matched
-                                                ? 'bg-green-100 text-green-800'
-                                                : 'bg-yellow-100 text-yellow-800'
-                                            } text-xs font-medium px-2.5 py-0.5 rounded`}>
-                                            {app.matched ? 'Match' : 'En attente'}
-                                        </span>
-                                    </div>
-                                    <div className="mt-4 flex justify-end space-x-2">
-                                        <button className="btn-secondary text-sm">
-                                            Voir le CV
-                                        </button>
-                                        <button className="btn-primary text-sm">
-                                            Voir le test
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
+            
             </main>
         </div>
     );
