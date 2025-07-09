@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import Footer from "../components/Footer";
 import AboutSection from "../components/AboutSection";
+import ChatbotWidget from "@/components/ChatbotWidget";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,7 +37,7 @@ export default function RootLayout({
           <div className="grid grid-cols-3 items-center px-10 pt-6">
             {/* Left navigation */}
             <nav className="flex gap-12 justify-start">
-              <Link href="#" className="font-bold text-lg text-gray-800 hover:text-cyan-700">Company</Link>
+              <Link href="/" className="font-bold text-lg text-gray-800 hover:text-cyan-700">Home</Link>
               <Link href="/offers" className="font-bold text-lg text-gray-800 hover:text-cyan-700">Search for a job</Link>
               <Link href="/open-apply" className="font-bold text-lg text-gray-800 hover:text-cyan-700">Open apply</Link>
             </nav>
@@ -47,7 +48,7 @@ export default function RootLayout({
             </div>
             {/* Right navigation */}
             <div className="flex gap-12 justify-end items-center">
-              <Link href="#" className="font-bold text-lg text-gray-800 hover:text-cyan-700">Careers</Link>
+              <Link href="#" className="font-bold text-lg text-gray-800 hover:text-cyan-700"></Link>
               <Link href="/chatbot" className="font-bold text-lg text-gray-800 hover:text-cyan-700">Chatbot</Link>
               <button className="border rounded-full px-4 py-1 flex items-center gap-2 text-base text-gray-800 ml-2">
                 <span role="img" aria-label="globe">🌐</span> English
@@ -63,6 +64,7 @@ export default function RootLayout({
         </main>
        
         <Footer />
+        <ChatbotWidget />
       </body>
     </html>
   );
