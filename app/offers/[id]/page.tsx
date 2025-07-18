@@ -4,7 +4,7 @@ import { jobOffersApi } from "@/services/api";
 const HIDDEN_FIELDS = ["_id", "test_generation_status", "test_id", "original_file_path"];
 
 export default async function OfferDetailPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+  const {id} = params;
   let offer: any = null;
   let error: string | null = null;
   try {

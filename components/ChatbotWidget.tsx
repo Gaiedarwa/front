@@ -4,29 +4,56 @@ import React, { useState, useEffect, useRef } from "react";
 export default function ChatbotWidget() {
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  // Add state for messages
   const [messages, setMessages] = useState([
     {
       from: "bot",
       text: "Hello from DRÄXLMAIER! What can we help you with?",
     },
   ]);
+  const [input, setInput] = useState("");
   const [isClient, setIsClient] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // Focus input when chatbot opens
   useEffect(() => {
     if (open && inputRef.current) inputRef.current.focus();
   }, [open]);
 
-  // Optionally handle sending messages (not required for now)
+  // Fonction pour envoyer le message à l’API Flask
+  const sendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+
+    // Ajoute le message utilisateur à l’historique
+    setMessages((msgs) => [...msgs, { from: "user", text: input }]);
+    setLoading(true);
+
+    try {
+      const res = await fetch("https://nbbdxj84-5000.euw.devtunnels.ms/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: input }),
+      });
+      const data = await res.json();
+      setMessages((msgs) => [
+        ...msgs,
+        { from: "bot", text: data.answer || "Sorry, I didn't get that." },
+      ]);
+    } catch (err) {
+      setMessages((msgs) => [
+        ...msgs,
+        { from: "bot", text: "Error contacting the chatbot server." },
+      ]);
+    }
+    setInput("");
+    setLoading(false);
+  };
 
   return (
     <>
-      {/* Floating button with video avatar */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
         {!open && (
           <button
@@ -46,7 +73,6 @@ export default function ChatbotWidget() {
           </button>
         )}
 
-        {/* Chatbot window */}
         {open && (
           <div className="w-[400px] bg-white rounded-2xl shadow-2xl border border-[#007a99] flex flex-col overflow-hidden">
             <div className="flex items-center justify-between p-4 bg-[#007a99]">
@@ -70,21 +96,43 @@ export default function ChatbotWidget() {
                 ×
               </button>
             </div>
-            <div className="flex-1 p-5 overflow-y-auto text-gray-700 bg-gray-50">
-              <div className="text-[#007a99] mb-3">
-                Hello from DRÄXLMAIER! What can we help you with?
-              </div>
+            <div className="flex-1 p-5 overflow-y-auto text-gray-700 bg-gray-50 max-h-[400px]">
+              {messages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={`mb-2 ${
+                    msg.from === "user" ? "text-right" : "text-left text-[#007a99]"
+                  }`}
+                >
+                  <span
+                    className={`inline-block px-3 py-2 rounded-lg ${
+                      msg.from === "user"
+                        ? "bg-[#e0f7fa] text-gray-800"
+                        : "bg-[#007a99] text-white"
+                    }`}
+                  >
+                    {msg.text}
+                  </span>
+                </div>
+              ))}
+              {loading && (
+                <div className="text-[#007a99] mb-2">Bot is typing...</div>
+              )}
             </div>
-            <form className="flex border-t border-gray-200 bg-white" onSubmit={e => e.preventDefault()}>
+            <form className="flex border-t border-gray-200 bg-white" onSubmit={sendMessage}>
               <input
                 ref={inputRef}
                 type="text"
                 placeholder="Type your message..."
                 className="flex-1 px-4 py-3 text-base focus:outline-none"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                disabled={loading}
               />
               <button
                 type="submit"
                 className="px-5 py-3 bg-[#007a99] text-white font-semibold hover:bg-[#005f73] transition"
+                disabled={loading}
               >
                 Send
               </button>
