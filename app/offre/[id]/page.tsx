@@ -1,58 +1,104 @@
-"use client";
+'use client';
 import { useEffect, useState } from 'react';
-import { jobOffersApi } from '@/services/api';
 import { useParams } from 'next/navigation';
+import { jobOffersApi, JobOffer } from '@/services/api';
 
-export default async function OffrePage() {
-    const params = await useParams();
-    const id = params?.id;
-    const [job, setJob] = useState<any>(null);
+export default function OfferDetailPage() {
+  const params = useParams();
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  const [offer, setOffer] = useState<JobOffer | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (id) {
-            jobOffersApi.getById(id.toString()).then(setJob);
-        }
-    }, [id]);
-    console.log('Job data:', job);
+  useEffect(() => {
+    if (!id) return;
+    jobOffersApi.getById(id)
+      .then(setOffer)
+      .catch((e) => setError(e.message || 'Error loading offer'));
+  }, [id]);
+
+  if (error) {
     return (
-        <div>
-            {job ? (
-                <div style={{ maxWidth: 800, margin: "0 auto", padding: 24, background: "#fff", borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
-                    <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>{job.title}</h1>
-                    <div style={{ color: "#888", marginBottom: 16 }}>
-                        <span>Publié le : {new Date(job.created_at).toLocaleDateString()}</span>
-                    </div>
-                    <div style={{ marginBottom: 16 }}>
-                        <strong>Type de contrat :</strong> {job.contract_type}
-                        <br />
-                        <strong>Type de travail :</strong> {job.work_type}
-                        <br />
-                        <strong>Niveau :</strong> {job.niveau}
-                        <br />
-                        <strong>Lieu :</strong> {job.location}
-                    </div>
-                    <div style={{ marginBottom: 16 }}>
-                        <strong>Compétences requises :</strong>
-                        <ul>
-                            {Array.isArray(job.skills) && job.skills.length > 0 ? (
-                                job.skills.map((skill: string, idx: number) => (
-                                    <li key={idx}>{skill}</li>
-                                ))
-                            ) : (
-                                <li>Aucune compétence spécifiée</li>
-                            )}
-                        </ul>
-                    </div>
-                    <div style={{ marginBottom: 16 }}>
-                        <strong>Description :</strong>
-                        <pre style={{ whiteSpace: "pre-wrap", background: "#f9f9f9", padding: 12, borderRadius: 4, fontFamily: "inherit" }}>
-                            {job.description}
-                        </pre>
-                    </div>
-                </div>
-            ) : (
-                <div>Chargement...</div>
-            )}
-        </div>
+      <div className="max-w-2xl mx-auto py-16 px-4 text-red-500">
+        {error}
+      </div>
     );
+  }
+  if (!offer) {
+    return (
+      <div className="max-w-2xl mx-auto py-16 px-4">
+        Loading...
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto py-16 px-4 bg-white rounded-xl shadow">
+      <h1 className="text-4xl font-bold mb-6 text-cyan-800">{offer.title}</h1>
+      <div className="space-y-3">
+        <div>
+          <span className="font-semibold text-cyan-700">Company:</span>{' '}
+          <span className="text-gray-800">{offer.company}</span>
+        </div>
+        <div>
+          <span className="font-semibold text-cyan-700">Contract Type:</span>{' '}
+          <span className="text-gray-800">{offer.contract_type}</span>
+        </div>
+        <div>
+          <span className="font-semibold text-cyan-700">Work Type:</span>{' '}
+          <span className="text-gray-800">{offer.work_type}</span>
+        </div>
+        <div>
+          <span className="font-semibold text-cyan-700">Level:</span>{' '}
+          <span className="text-gray-800">{offer.level}</span>
+        </div>
+        <div>
+          <span className="font-semibold text-cyan-700">Location:</span>{' '}
+          <span className="text-gray-800">{offer.location}</span>
+        </div>
+        <div>
+          <span className="font-semibold text-cyan-700">Skills:</span>
+          <ul className="list-disc ml-6 text-gray-700">
+            {offer.skills && offer.skills.length > 0 ? (
+              offer.skills.map((skill, idx) => (
+                <li key={idx}>{skill}</li>
+              ))
+            ) : (
+              <li>No skills specified</li>
+            )}
+          </ul>
+        </div>
+        <div>
+          <span className="font-semibold text-cyan-700">Requirements:</span>
+          <ul className="list-disc ml-6 text-gray-700">
+            {offer.requirements && offer.requirements.length > 0 ? (
+              offer.requirements.map((req, idx) => (
+                <li key={idx}>{req}</li>
+              ))
+            ) : (
+              <li>No requirements specified</li>
+            )}
+          </ul>
+        </div>
+        <div>
+          <span className="font-semibold text-cyan-700">Description:</span>
+          <div className="bg-gray-50 rounded p-3 mt-1 text-gray-800 whitespace-pre-line">
+            {offer.description}
+          </div>
+        </div>
+        {offer.file_url && (
+          <div>
+            <span className="font-semibold text-cyan-700">File:</span>{' '}
+            <a
+              href={offer.file_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-cyan-700 underline"
+            >
+              View file
+            </a>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }

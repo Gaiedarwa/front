@@ -1,7 +1,7 @@
 // app/services/api.ts
 
 // URL de base de votre API Flask.
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_URL = 'http://localhost:5000/api';
 
 // --- Définition des Interfaces (Types) ---
 
@@ -19,6 +19,8 @@ export interface JobOffer {
   requirements: string[];
   test_id?: string;
   test_generation_status: 'pending' | 'completed' | 'failed' | 'no_skills_found';
+  file_url?: string; // ← Ajoute cette ligne
+  original_file_path?: string; // ← Optionnel, si tu veux aussi l'utiliser
 }
 
 // Structure d'une candidature, telle qu'elle existe dans votre backend
@@ -76,6 +78,44 @@ async function handleResponse<T>(response: Response): Promise<T> {
   return response.json();
 }
 
+// Fonction pour récupérer le token depuis Auth.js
+async function getAuthToken(): Promise<string | null> {
+  try {
+    const response = await fetch('/api/auth/session');
+    const session = await response.json();
+    return session?.accessToken || null;
+  } catch (error) {
+    console.error('Error getting auth token:', error);
+    return null;
+  }
+}
+
+async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {
+  const token = await getAuthToken();
+
+  const headers = new Headers(options.headers || {});
+  if (token) {
+    headers.append('Authorization', `Bearer ${token}`);
+  }
+  
+  if (!(options.body instanceof FormData)) {
+      headers.append('Content-Type', 'application/json');
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
+  });
+
+  if (response.status === 401) {
+    // Rediriger vers la page de login en cas d'échec d'authentification
+    window.location.href = '/login';
+    throw new ApiError('Unauthorized', 401);
+  }
+
+  return response;
+}
+
 // --- Définition des Appels API pour les Offres d'Emploi ---
 
 export const jobOffersApi = {
@@ -106,12 +146,22 @@ export const jobOffersApi = {
     const response = await fetch(`${API_URL}/offers/`);
     return handleResponse<JobOffer[]>(response);
   },
+  
+  /**
+   * Récupère toutes les offres d'emploi publiquement.
+   * Fait appel à : GET /api/offers/public
+   */
+  getPublicAll: async (): Promise<JobOffer[]> => {
+    const response = await fetch(`${API_URL}/offers/`);
+    return handleResponse<JobOffer[]>(response);
+  },
+
   getById: async (id: string): Promise<JobOffer> => {
     const response = await fetch(`${API_URL}/offers/${id}`);
     return handleResponse<JobOffer>(response);
   },
   delete: async (id: string): Promise<void> => {
-    await fetch(`${API_URL}/offers/${id}`, {
+    await fetchWithAuth(`${API_URL}/offers/${id}`, {
       method: 'DELETE',
     });
   },
@@ -157,7 +207,7 @@ export const applicationsApi = {
    * Fait appel à : GET /api/postulations
    */
   getAll: async (): Promise<Postulation[]> => {
-    const response = await fetch(`${API_URL}/postulations`);
+    const response = await fetchWithAuth(`${API_URL}/postulations`);
     return handleResponse<Postulation[]>(response);
   },
 
@@ -166,7 +216,7 @@ export const applicationsApi = {
    * Fait appel à : GET /api/postulations/<id>
    */
   getById: async (id: string): Promise<Postulation> => {
-    const response = await fetch(`${API_URL}/postulations/${id}`);
+    const response = await fetchWithAuth(`${API_URL}/postulations/${id}`);
     return handleResponse<Postulation>(response);
   },
 
@@ -175,8 +225,23 @@ export const applicationsApi = {
    * Fait appel à : DELETE /api/postulations/<id>
    */
   delete: async (id: string): Promise<void> => {
-    await fetch(`${API_URL}/postulations/${id}`, {
+    await fetchWithAuth(`${API_URL}/postulations/${id}`, {
       method: 'DELETE',
     });
   },
+
+  /**
+   * Récupère l'URL de téléchargement du CV pour une candidature donnée.
+   * @param id L'identifiant de la candidature
+   * @returns L'URL du fichier CV
+   */
+  getCVUrl: (id: string): string => {
+    // The URL itself doesn't need a token, but the backend endpoint it points to is now protected.
+    // The browser will handle the request, and if the user isn't logged in on another tab, it might fail.
+    // For direct downloads, a different mechanism like URL signing might be better, but this will work for now.
+    return `${API_URL}/postulations/${id}/cv`;
+  },
 };
+
+// Note: authApi n'est plus nécessaire car Auth.js gère l'authentification
+// Les fonctions de login/register sont maintenant gérées par Auth.js
